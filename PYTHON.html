@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, rgba(255,0,0,0.3), rgba(0,255,0,0.3), rgba(0,0,255,0.3));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 700px;
+            margin: 20px;
+        }
+        
+        .form, .quiz {
+            text-align: center;
+        }
+        
+        input[type="text"], input[type="password"], button {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .quiz {
+            display: none;
+        }
+
+        .result {
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form" id="loginForm">
+            <h2>Login</h2>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br><br>
+            <button onclick="validateLogin()">Login</button>
+        </div>
+
+        <div class="form" id="studentForm" style="display: none;">
+            <h2>Student Information</h2>
+            <form id="infoForm" onsubmit="startQuiz(event)">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required><br><br>
+                <label for="roll">Roll Number:</label>
+                <input type="text" id="roll" name="roll" required><br><br>
+                <label for="mobile">Mobile Number:</label>
+                <input type="text" id="mobile" name="mobile" required><br><br>
+                <label for="date">Date:</label>
+                <input type="text" id="date" name="date" readonly><br><br>
+                <button type="submit">Start Quiz</button>
+            </form>
+        </div>
+
+        <div class="quiz" id="quizForm">
+            <h2>Quiz</h2>
+            <form id="quiz">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Question</th>
+                            <th>Options</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questions"></tbody>
+                </table>
+                <button type="submit">Submit Quiz</button>
+            </form>
+        </div>
+
+        <div class="result" id="result">
+            <h2>Result</h2>
+            <p id="studentInfo"></p>
+            <p id="marks"></p>
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Your Answer</th>
+                        <th>Correct Answer</th>
+                    </tr>
+                </thead>
+                <tbody id="resultBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+        { question: "Which character is used in Python to make a single line comment?", options: ["//", "!", "#", "/*"], answer: 2 },
+            { question: "What keyword is used in Python to raise exceptions?", options: ["Raise", "try", "except", "final"], answer: 0 },
+            { question: "Which of the following is not a keyword in Python?", options: ["if", "else", "while", "function"], answer: 3 },
+            { question: "Which function is used to get the length of a list in Python?", options: ["length()", "len()", "size()", "listlen()"], answer: 1 },
+            { question: "What is the output of 2**3 in Python?", options: ["6", "8", "9", "10"], answer: 1 },
+            { question: "Which method is used to add an element at the end of a list in Python?", options: ["add()", "append()", "insert()", "end()"], answer: 1 },
+            { question: "What is the file extension for Python files?", options: [".py", ".python", ".pt", ".pyt"], answer: 0 },
+            { question: "Which of the following is a mutable data type in Python?", options: ["int", "str", "tuple", "list"], answer: 3 },
+            { question: "Which of the following is used to define a block of code in Python?", options: ["Brackets", "Indentation", "Quotation", "Parentheses"], answer: 1 },
+            { question: "Which keyword is used to create a function in Python?", options: ["func", "define", "def", "function"], answer: 2 },
+            { question: "Which of the following is used to create an object in Python?", options: ["Class", "Object", "Instance", "New"], answer: 2 },
+            { question: "Which of the following is not a built-in data type in Python?", options: ["str", "int", "float", "char"], answer: 3 },
+            { question: "Which of the following is used to check if an element exists in a list?", options: ["in", "exists", "has", "include"], answer: 0 },
+            { question: "What is the output of 4//2 in Python?", options: ["1", "2", "2.0", "0"], answer: 1 },
+            { question: "Which method is used to convert a string to lowercase in Python?", options: ["lowercase()", "tolower()", "lower()", "strlower()"], answer: 2 },
+            { question: "Which module in Python is used to handle regular expressions?", options: ["regex", "re", "pyregex", "regularexpression"], answer: 1 },
+            { question: "Which of the following is used to create a set in Python?", options: ["set()", "{}", "()", "[]"], answer: 0 },
+            { question: "What is the output of 'Hello' + 'World' in Python?", options: ["Hello World", "HelloWorld", "Helloworld", "Error"], answer: 1 },
+            { question: "Which function is used to get the type of an object in Python?", options: ["typeof()", "type()", "gettype()", "objecttype()"], answer: 1 },
+            { question: "What is the output of 5%2 in Python?", options: ["0", "1", "2", "2.5"], answer: 1 },
+            { question: "Which of the following is used to read a file in Python?", options: ["readfile()", "open()", "read()", "file()"], answer: 1 },
+            { question: "Which method is used to remove an element from a list by index in Python?", options: ["remove()", "pop()", "delete()", "discard()"], answer: 1 },
+            { question: "Which of the following is used to create a dictionary in Python?", options: ["dict()", "{}", "[]", "dict{}"], answer: 0 },
+            { question: "Which keyword is used to import modules in Python?", options: ["include", "import", "require", "use"], answer: 1 },
+            { question: "Which of the following is used to handle exceptions in Python?", options: ["try", "catch", "except", "finally"], answer: 0 },
+            { question: "Which of the following is a tuple in Python?", options: ["(1, 2, 3)", "[1, 2, 3]", "{1, 2, 3}", "{1: 2, 3: 4}"], answer: 0 },
+            { question: "Which of the following is a set in Python?", options: ["{1, 2, 3}", "[1, 2, 3]", "(1, 2, 3)", "{1: 2, 3: 4}"], answer: 0 },
+            { question: "Which of the following is used to add an element at a specific position in a list?", options: ["add()", "insert()", "append()", "extend()"], answer: 1 },
+            { question: "Which function is used to convert a list into a set?", options: ["tolist()", "set()", "list()", "convertset()"], answer: 1 },
+            { question: "Which of the following is used to check the type of a variable?", options: ["typeof()", "type()", "gettype()", "var()"], answer: 1 },
+            { question: "What is the output of 10/3 in Python?", options: ["3", "3.0", "3.33", "3.3333333333333335"], answer: 3 },
+            { question: "Which keyword is used to define a class in Python?", options: ["class", "define", "def", "object"], answer: 0 },
+            { question: "Which of the following is not a loop in Python?", options: ["for", "while", "do-while", "foreach"], answer: 3 },
+            { question: "What is the output of 10**2 in Python?", options: ["10", "20", "100", "1000"], answer: 2 },
+            { question: "Which of the following is used to check if a string starts with a specific substring?", options: ["startswith()", "start()", "beginwith()", "startswithwith()"], answer: 0 },
+            { question: "Which function is used to convert a string to an integer in Python?", options: ["string()", "int()", "str()", "convertint()"], answer: 1 },
+            { question: "Which method is used to remove whitespace from the beginning and end of a string?", options: ["strip()", "trim()", "remove()", "strim()"], answer: 0 },
+            { question: "Which keyword is used to exit a loop in Python?", options: ["break", "exit", "stop", "end"], answer: 0 },
+            { question: "Which function is used to convert an integer to a string in Python?", options: ["string()", "str()", "convertstr()", "int()"], answer: 1 },
+            { question: "Which keyword is used to define an anonymous function in Python?", options: ["lambda", "def", "anon", "func"], answer: 0 },
+            { question: "Which method is used to replace a substring in a string?", options: ["replace()", "substitute()", "change()", "replacestr()"], answer: 0 },
+            { question: "Which of the following is used to create a frozenset in Python?", options: ["frozen()", "frozenset()", "freeze()", "frozenset{}"], answer: 1 },
+            { question: "Which keyword is used to continue to the next iteration of a loop?", options: ["next", "continue", "skip", "pass"], answer: 1 },
+            { question: "Which of the following is used to check if all elements in a list are true?", options: ["all()", "any()", "checkall()", "isall()"], answer: 0 },
+            { question: "Which method is used to convert a string to uppercase?", options: ["uppercase()", "toupper()", "upper()", "strupper()"], answer: 2 },
+            { question: "Which function is used to get the maximum value in a list?", options: ["max()", "maximum()", "getmax()", "maxvalue()"], answer: 0 },
+            { question: "Which keyword is used to define a generator function in Python?", options: ["def", "gen", "yield", "generate"], answer: 2 },
+            { question: "Which method is used to split a string into a list?", options: ["split()", "divide()", "separate()", "strsplit()"], answer: 0 },
+            { question: "Which function is used to get the minimum value in a list?", options: ["min()", "minimum()", "getmin()", "minvalue()"], answer: 0 },
+            { question: "Which function is used to create an empty set?", options: ["set()", "{}", "emptyset()", "createset()"], answer: 0 }
+        ];
+
+        function validateLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === 'VIKAS' && password === '9754040635') {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('studentForm').style.display = 'block';
+                document.getElementById('date').value = new Date().toLocaleDateString();
+            } else {
+                alert('Invalid credentials');
+            }
+        }
+
+        function startQuiz(event) {
+            event.preventDefault();
+            document.getElementById('studentForm').style.display = 'none';
+            const quizForm = document.getElementById('quizForm');
+            const questionsContainer = document.getElementById('questions');
+
+            questions.forEach((q, index) => {
+                const questionHTML = `
+                    <tr>
+                        <td>${index + 1}. ${q.question}</td>
+                        <td>
+                            ${q.options.map((opt, i) => `
+                                <div>
+                                    <input type="radio" name="question${index}" value="${i}" id="q${index}o${i}">
+                                    <label for="q${index}o${i}">${opt}</label>
+                                </div>
+                            `).join('')}
+                        </td>
+                    </tr>
+                `;
+                questionsContainer.innerHTML += questionHTML;
+            });
+
+            quizForm.style.display = 'block';
+        }
+
+        document.getElementById('quiz').addEventListener('submit', function(event) {
+            event.preventDefault();
+            let score = 0;
+            const resultBody = document.getElementById('resultBody');
+            resultBody.innerHTML = '';  // Clear previous results
+
+            questions.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="question${index}"]:checked`);
+                const userAnswer = selected ? parseInt(selected.value) : null;
+                if (userAnswer === q.answer) {
+                    score++;
+                }
+                
+                const resultRow = document.createElement('tr');
+                resultRow.innerHTML = `
+                    <td>${index + 1}. ${q.question}</td>
+                    <td>${selected ? q.options[userAnswer] : 'No Answer'}</td>
+                    <td>${q.options[q.answer]}</td>
+                `;
+                resultBody.appendChild(resultRow);
+            });
+
+            document.getElementById('quizForm').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+
+            const name = document.getElementById('name').value;
+            const roll = document.getElementById('roll').value;
+            document.getElementById('studentInfo').textContent = `Name: ${name}, Roll Number: ${roll}`;
+            document.getElementById('marks').textContent = `You scored ${score} out of ${questions.length}`;
+        });
+    </script>
+</body>
+</html>
